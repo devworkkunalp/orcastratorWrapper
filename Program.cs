@@ -10,9 +10,15 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices((context, services) =>
     {
-        // Database Configuration
-        services.AddDbContext<OrchestratorContext>(options =>
-            options.UseSqlServer(context.Configuration.GetConnectionString("OrchestratorDb")));
+        // Database Configuration - Robust Retrieval
+        services.AddDbContext<OrchestratorContext>((sp, options) => {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var connString = config.GetConnectionString("OrchestratorDb") 
+                          ?? config["OrchestratorDb"]
+                          ?? config["Values:OrchestratorDb"];
+            
+            options.UseSqlServer(connString);
+        });
 
         // Registers Typed HttpClients for APIs
         services.AddHttpClient<IScorecardService, ScorecardService>();

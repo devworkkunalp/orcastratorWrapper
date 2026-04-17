@@ -32,6 +32,20 @@ public class OrchestratorFunction
             var hudService = scope.ServiceProvider.GetRequiredService<IHudService>();
             var laborService = scope.ServiceProvider.GetRequiredService<ILaborSyncService>();
 
+            // Diagnostic Connection Check
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+            var connStr = config.GetConnectionString("OrchestratorDb") ?? config["OrchestratorDb"];
+            
+            if (string.IsNullOrEmpty(connStr))
+            {
+                _logger.LogError("CRITICAL: OrchestratorDb connection string is MISSING. Please check App Settings.");
+                return;
+            }
+            else 
+            {
+                _logger.LogInformation("Connection string found (Length: {len}). Attempting to connect...", connStr.Length);
+            }
+
             // Ensure the database schema is up-to-date
             _logger.LogInformation("Verifying database schema...");
             await context.Database.EnsureCreatedAsync();
