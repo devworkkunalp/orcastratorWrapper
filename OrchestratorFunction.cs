@@ -20,7 +20,7 @@ public class OrchestratorFunction
     }
 
     [Function("OrchestrateResearchData")]
-    public async Task Run([TimerTrigger("0 0 0 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 0 * * 0")] TimerInfo myTimer)
     {
         _logger.LogInformation("Orchestrator Triggered: Starting Sync Cycle at: {time}", DateTime.Now);
 
