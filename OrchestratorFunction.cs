@@ -64,8 +64,9 @@ public class OrchestratorFunction
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "A critical error occurred during the OrchestrateResearchData execution.");
-            throw; // Rethrow to allow Azure Functions to handle retries if configured
+            var msg = ex.InnerException?.Message ?? ex.Message;
+            _logger.LogError(ex, "CRITICAL ERROR in Sync: {msg}", msg);
+            throw; 
         }
     }
 }

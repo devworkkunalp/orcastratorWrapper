@@ -10,14 +10,20 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices((context, services) =>
     {
-        // Database Configuration - Robust Retrieval
+        // Database Configuration - Robust Retrieval with Resiliency
         services.AddDbContext<OrchestratorContext>((sp, options) => {
             var config = sp.GetRequiredService<IConfiguration>();
             var connString = config.GetConnectionString("OrchestratorDb") 
                           ?? config["OrchestratorDb"]
                           ?? config["Values:OrchestratorDb"];
             
-            options.UseSqlServer(connString);
+            options.UseSqlServer(connString, sqlOptions => {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+                sqlOptions.CommandTimeout(60);
+            });
         });
 
         // Registers Typed HttpClients for APIs
