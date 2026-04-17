@@ -44,7 +44,14 @@ public class OrchestratorFunction
             }
             else 
             {
-                _logger.LogInformation("Connection string found (Length: {len}). Attempting to connect...", connStr.Length);
+                // Mask password for safe logging
+                try {
+                    var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connStr);
+                    _logger.LogInformation("DIAGNOSTIC - Server: {srv} | DB: {db} | User: {usr}", 
+                        builder.DataSource, builder.InitialCatalog, builder.UserID);
+                } catch {
+                    _logger.LogInformation("Connection string found (Length: {len}). Format is non-standard.", connStr.Length);
+                }
             }
 
             // Ensure the database schema is up-to-date
