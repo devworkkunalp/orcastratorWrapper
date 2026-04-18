@@ -19,7 +19,7 @@ public class RegionalRent
 
 public static class PowerRegions
 {
-    public static readonly string[] TopStates = { "CA", "TX", "NY", "MA", "WA", "GA" };
+    public static readonly string[] TopStates = { "CA", "TX", "NY", "MA", "WA", "GA", "PA", "IL" };
     
     public static readonly (string Name, string MsaId)[] TargetMetros = {
         ("Silicon Valley", "METRO41940M41940"), // San Jose-Sunnyvale-Santa Clara
@@ -27,6 +27,7 @@ public static class PowerRegions
         ("Austin Hills", "METRO12420M12420"),  // Austin-Round Rock
         ("NYC Metro", "METRO35620M35620"),     // New York-Newark-Jersey City
         ("Seattle Metro", "METRO42660M42660"), // Seattle-Tacoma-Bellevue
-        ("Atlanta Hub", "METRO12060M12060")    // Atlanta-Sandy Springs-Alpharetta
+        ("Atlanta Hub", "METRO12060M12060"),   // Atlanta-Sandy Springs-Alpharetta
+        ("Pittsburgh Metro", "METRO38300M38300") // Pittsburgh, PA (For CMU)
     };
 }
