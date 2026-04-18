@@ -38,6 +38,8 @@ public class LaborBenchmark
     public int Percentile75Salary { get; set; }
     public int Percentile90Salary { get; set; }
     
+    public int RentMedian { get; set; }
+    
     public DateTime LastSynced { get; set; }
 }
 
