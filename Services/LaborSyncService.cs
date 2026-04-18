@@ -129,6 +129,13 @@ public class LaborSyncService : ILaborSyncService
                     existing.Percentile75Salary = (int)(regionalMedian * 1.25);
                     existing.Percentile90Salary = (int)(regionalMedian * 1.55);
                     
+                    // Link Regional Rent Data
+                    var rent = await context.RegionalRents.FirstOrDefaultAsync(r => r.RegionName == metro.Name);
+                    if (rent != null)
+                    {
+                        existing.RentMedian = rent.OneBedRent; // Standard 1BR benchmark
+                    }
+                    
                     existing.LastSynced = DateTime.UtcNow;
                 }
                 catch (Exception ex)
