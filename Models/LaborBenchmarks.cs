@@ -6,6 +6,7 @@ public class VisaBenchmark
 {
     public int Id { get; set; }
     public string RegionName { get; set; } = string.Empty; // e.g. Silicon Valley, Boston Metro
+    public string Specialization { get; set; } = "General";
     
     public int TotalPetitions { get; set; }
     public int Approvals { get; set; }
@@ -20,6 +21,7 @@ public class LaborBenchmark
 {
     public int Id { get; set; }
     public string RegionName { get; set; } = string.Empty; // e.g. Silicon Valley, Boston Metro
+    public string Specialization { get; set; } = "General";
     
     public int JobCount { get; set; }
     public int AvgSalary { get; set; }
