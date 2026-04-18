@@ -32,6 +32,7 @@ var host = new HostBuilder()
 
         // Registers Standard Services
         services.AddScoped<ILaborSyncService, LaborSyncService>();
+        services.AddScoped<IGlobalSyncService, GlobalSyncService>();
     })
     .Build();
 

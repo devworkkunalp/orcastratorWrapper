@@ -14,12 +14,14 @@ public class UniversityMetric
     // Academic ROI Aggregates
     public int? MedianEarnings { get; set; }
     public int? MedianDebt { get; set; }
+    public int? AnnualTuition { get; set; }
     public decimal? GraduationRate { get; set; }
     public decimal? AdmissionRate { get; set; }
     
     // Derived Research Hub Metrics
     public int? RoiScore { get; set; }
     public decimal? EmploymentRate { get; set; }
+    public decimal? IntlStudentShare { get; set; } // H-1B Proxy
     
     public DateTime LastSynced { get; set; }
 }

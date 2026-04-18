@@ -32,6 +32,7 @@ public class OrchestratorFunction
             var scorecardService = scope.ServiceProvider.GetRequiredService<IScorecardService>();
             var hudService = scope.ServiceProvider.GetRequiredService<IHudService>();
             var laborService = scope.ServiceProvider.GetRequiredService<ILaborSyncService>();
+            var globalService = scope.ServiceProvider.GetRequiredService<IGlobalSyncService>();
 
             // Diagnostic Connection Check
             var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
@@ -64,7 +65,8 @@ public class OrchestratorFunction
                 scorecardService.SyncRegionalUniversitiesAsync(),
                 hudService.SyncRegionalRentsAsync(),
                 laborService.SyncVisaBenchmarksAsync(),
-                laborService.SyncSalaryBenchmarksAsync()
+                laborService.SyncSalaryBenchmarksAsync(),
+                globalService.SyncGlobalBenchmarksAsync()
             );
 
             _logger.LogInformation("Sync Cycle Complete. Next occurrence: {next}", myTimer.ScheduleStatus?.Next);

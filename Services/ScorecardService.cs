@@ -51,7 +51,7 @@ public class ScorecardService : IScorecardService
 
                 _logger.LogInformation("Fetching target universities for state: {State}", state);
                 
-                var fields = "id,school.name,school.city,school.state,school.zip,latest.earnings.10_yrs_after_entry.median,latest.admissions.admission_rate,latest.completion.completion_rate_4yr_150nt";
+                var fields = "id,school.name,school.city,school.state,school.zip,latest.earnings.10_yrs_after_entry.median,latest.admissions.admission_rate,latest.completion.completion_rate_4yr_150nt,latest.cost.tuition.out_of_state,latest.aid.median_debt.completers.overall,latest.student.demographics.race_ethnicity.non_resident_alien";
                 var url = $"https://api.data.gov/ed/collegescorecard/v1/schools.json?school.state={state}&api_key={_apiKey}&fields={fields}&per_page=100&sort=latest.earnings.10_yrs_after_entry.median:desc";
                 
                 var response = await _httpClient.GetFromJsonAsync<ScorecardRoot>(url);
@@ -79,6 +79,9 @@ public class ScorecardService : IScorecardService
                         existing.MedianEarnings = item.MedianEarnings;
                         existing.GraduationRate = (decimal?)item.GradRate;
                         existing.AdmissionRate = (decimal?)item.AdmitRate;
+                        existing.AnnualTuition = item.Tuition;
+                        existing.MedianDebt = item.MedianDebt;
+                        existing.IntlStudentShare = (decimal?)item.IntlShare;
                         existing.LastSynced = DateTime.UtcNow;
 
                         // Basic ROI Score calculation placeholder (will refine in backend)
@@ -121,5 +124,14 @@ public class ScorecardService : IScorecardService
         
         [JsonPropertyName("latest.completion.completion_rate_4yr_150nt")]
         public double? GradRate { get; set; }
+
+        [JsonPropertyName("latest.cost.tuition.out_of_state")]
+        public int? Tuition { get; set; }
+
+        [JsonPropertyName("latest.aid.median_debt.completers.overall")]
+        public int? MedianDebt { get; set; }
+
+        [JsonPropertyName("latest.student.demographics.race_ethnicity.non_resident_alien")]
+        public double? IntlShare { get; set; }
     }
 }

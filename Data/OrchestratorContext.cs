@@ -14,6 +14,7 @@ public class OrchestratorContext : DbContext
     public DbSet<RegionalRent> RegionalRents { get; set; } = null!;
     public DbSet<VisaBenchmark> VisaBenchmarks { get; set; } = null!;
     public DbSet<LaborBenchmark> LaborBenchmarks { get; set; } = null!;
+    public DbSet<GlobalUniversityMetric> GlobalUniversityMetrics { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,5 +25,6 @@ public class OrchestratorContext : DbContext
         modelBuilder.Entity<RegionalRent>().HasIndex(r => r.MsaId).IsUnique();
         modelBuilder.Entity<VisaBenchmark>().HasIndex(v => v.RegionName).IsUnique();
         modelBuilder.Entity<LaborBenchmark>().HasIndex(l => l.RegionName).IsUnique();
+        modelBuilder.Entity<GlobalUniversityMetric>().HasIndex(g => new { g.CountryCode, g.Name }).IsUnique();
     }
 }
