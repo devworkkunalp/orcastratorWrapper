@@ -81,9 +81,9 @@ public class GlobalBenchmarkSeeder
                         Flag = GetFlag(country),
                         Specialization = spec,
                         MedianSalary = GetEstimatedSalary(country, rawSpec),
-                        PrMetric = GetPrMetric(country),
-                        VisaEase = GetVisaEase(country),
-                        RoiScore = GetRoiScore(country),
+                        PrMetric = GetPrEaseMetric(country),
+                        VisaEase = GetVisaEaseMetric(country),
+                        RoiScore = GetDefaultRoiScore(country, rawSpec),
                         LastSynced = DateTime.UtcNow
                     });
                 }
@@ -157,6 +157,11 @@ public class GlobalBenchmarkSeeder
         if (spec.Contains("AI") || spec.Contains("Data")) score += 10;
         return Math.Min(score, 99);
     }
+
+    private int GetEstimatedRent(string country) => country switch
+    {
+        "CA" => 1650, "DE" => 1200, "GB" => 1400, "AU" => 1800, "US" => 2200, _ => 1500
+    };
 
     private string GetCountryName(string code) => code switch
     {
