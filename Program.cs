@@ -29,10 +29,12 @@ var host = new HostBuilder()
         // Registers Typed HttpClients for APIs
         services.AddHttpClient<IScorecardService, ScorecardService>();
         services.AddHttpClient<IHudService, HudService>();
+        services.AddHttpClient(); // Generic client for Hipo API
 
         // Registers Standard Services
         services.AddScoped<ILaborSyncService, LaborSyncService>();
         services.AddScoped<IGlobalSyncService, GlobalSyncService>();
+        services.AddScoped<GlobalUniversityHarvester>();
     })
     .Build();
 
