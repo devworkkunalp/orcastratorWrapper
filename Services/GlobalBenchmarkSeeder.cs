@@ -11,10 +11,12 @@ namespace STEMwise.Orchestrator.Services;
 public class GlobalBenchmarkSeeder
 {
     private readonly OrchestratorContext _context;
+    private readonly ResearchMapper _mapper;
 
     public GlobalBenchmarkSeeder(OrchestratorContext context)
     {
         _context = context;
+        _mapper = new ResearchMapper();
     }
 
     public async Task SeedBenchmarksAsync()
@@ -26,42 +28,45 @@ public class GlobalBenchmarkSeeder
 
         foreach (var country in countries)
         {
-            foreach (var spec in specializations)
+            foreach (var rawSpec in specializations)
             {
+                var spec = _mapper.NormalizeName(rawSpec) ?? rawSpec;
+
                 // 1. Seed Labor Benchmarks
-                var laborExists = await _context.LaborBenchmarks.AnyAsync(l => l.CountryCode == country && l.Specialization == spec);
+                var regionName = GetRepresentativeHub(country);
+                var laborExists = await _context.LaborBenchmarks.AnyAsync(l => l.RegionName == regionName && l.Specialization == spec);
                 if (!laborExists)
                 {
                     _context.LaborBenchmarks.Add(new LaborBenchmark
                     {
                         CountryCode = country,
                         Specialization = spec,
-                        RegionName = GetRepresentativeHub(country),
-                        MedianSalary = GetEstimatedSalary(country, spec),
-                        Percentile10Salary = GetEstimatedSalary(country, spec, 0.6),
-                        Percentile25Salary = GetEstimatedSalary(country, spec, 0.8),
-                        Percentile75Salary = GetEstimatedSalary(country, spec, 1.3),
-                        Percentile90Salary = GetEstimatedSalary(country, spec, 1.6),
-                        JobCount = 5000,
+                        RegionName = regionName,
+                        MedianSalary = GetEstimatedSalary(country, rawSpec),
+                        Percentile10Salary = GetEstimatedSalary(country, rawSpec, 0.6),
+                        Percentile25Salary = GetEstimatedSalary(country, rawSpec, 0.8),
+                        Percentile75Salary = GetEstimatedSalary(country, rawSpec, 1.25),
+                        Percentile90Salary = GetEstimatedSalary(country, rawSpec, 1.5),
+                        RentMedian = GetEstimatedRent(country),
                         LastSynced = DateTime.UtcNow
                     });
                 }
 
                 // 2. Seed Global Sector Benchmarks (For the comparison table)
-                var countryName = GetCountryName(country);
-                var sectorExists = await _context.GlobalSectorBenchmarks.AnyAsync(s => s.CountryName == countryName && s.Specialization == spec);
+                var sectorExists = await _context.GlobalSectorBenchmarks.AnyAsync(s => s.CountryCode == country && s.Specialization == spec);
                 if (!sectorExists)
                 {
+                    var countryName = GetCountryName(country);
                     _context.GlobalSectorBenchmarks.Add(new GlobalSectorBenchmark
                     {
                         CountryCode = country,
                         CountryName = countryName,
                         Flag = GetFlag(country),
                         Specialization = spec,
-                        MedianSalary = GetEstimatedSalary(country, spec),
-                        PrMetric = GetPrEaseMetric(country),
-                        VisaEase = GetVisaEaseMetric(country),
-                        RoiScore = GetDefaultRoiScore(country, spec),
+                        MedianSalary = GetEstimatedSalary(country, rawSpec),
+                        PrMetric = GetPrMetric(country),
+                        VisaEase = GetVisaEase(country),
+                        RoiScore = GetRoiScore(country),
                         LastSynced = DateTime.UtcNow
                     });
                 }
