@@ -16,6 +16,7 @@ public class OrchestratorContext : DbContext
     public DbSet<LaborBenchmark> LaborBenchmarks { get; set; } = null!;
     public DbSet<GlobalUniversityMetric> GlobalUniversityMetrics { get; set; } = null!;
     public DbSet<GlobalSectorBenchmark> GlobalSectorBenchmarks { get; set; } = null!;
+    public DbSet<Specialization> Specializations { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,10 +26,12 @@ public class OrchestratorContext : DbContext
         modelBuilder.Entity<UniversityMetric>().HasIndex(u => u.UnitId).IsUnique();
         modelBuilder.Entity<RegionalRent>().HasIndex(r => r.MsaId).IsUnique();
         
-        // Multi-column index for Specialization support
-        modelBuilder.Entity<VisaBenchmark>().HasIndex(v => new { v.RegionName, v.Specialization }).IsUnique();
-        modelBuilder.Entity<LaborBenchmark>().HasIndex(l => new { l.RegionName, l.Specialization }).IsUnique();
+        // Multi-column index for Specialization support (ID-based)
+        modelBuilder.Entity<VisaBenchmark>().HasIndex(v => new { v.RegionName, v.SpecializationId }).IsUnique();
+        modelBuilder.Entity<LaborBenchmark>().HasIndex(l => new { l.RegionName, l.SpecializationId }).IsUnique();
         modelBuilder.Entity<GlobalUniversityMetric>().HasIndex(g => new { g.CountryCode, g.Name }).IsUnique();
-        modelBuilder.Entity<GlobalSectorBenchmark>().HasIndex(gs => new { gs.CountryCode, gs.Specialization }).IsUnique();
+        modelBuilder.Entity<GlobalSectorBenchmark>().HasIndex(gs => new { gs.CountryCode, gs.SpecializationId }).IsUnique();
+        
+        modelBuilder.Entity<Specialization>().HasIndex(s => s.NormalizedName).IsUnique();
     }
 }

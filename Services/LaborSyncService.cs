@@ -35,6 +35,7 @@ public class LaborSyncService : ILaborSyncService
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<OrchestratorContext>();
 
+        var specs = await context.Specializations.ToListAsync();
         var sectors = new[] { "CS", "Cybersecurity", "Data Science", "Electrical Eng", "Biomedical", "Mechanical Eng" };
 
         foreach (var metro in PowerRegions.TargetMetros)
@@ -43,12 +44,15 @@ public class LaborSyncService : ILaborSyncService
             {
                 try
                 {
+                    var specId = GetSpecId(specs, sector);
+                    if (specId == 0) continue;
+
                     var existing = await context.VisaBenchmarks
-                        .FirstOrDefaultAsync(v => v.RegionName == metro.Name && v.Specialization == sector);
+                        .FirstOrDefaultAsync(v => v.RegionName == metro.Name && v.SpecializationId == specId);
 
                     if (existing == null)
                     {
-                        existing = new VisaBenchmark { RegionName = metro.Name, Specialization = sector };
+                        existing = new VisaBenchmark { RegionName = metro.Name, SpecializationId = specId };
                         context.VisaBenchmarks.Add(existing);
                     }
 
@@ -89,6 +93,7 @@ public class LaborSyncService : ILaborSyncService
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<OrchestratorContext>();
 
+        var specs = await context.Specializations.ToListAsync();
         var sectors = new[] { "CS", "Cybersecurity", "Data Science", "Electrical Eng", "Biomedical", "Mechanical Eng" };
 
         foreach (var metro in PowerRegions.TargetMetros)
@@ -97,12 +102,15 @@ public class LaborSyncService : ILaborSyncService
             {
                 try
                 {
+                    var specId = GetSpecId(specs, sector);
+                    if (specId == 0) continue;
+
                     var existing = await context.LaborBenchmarks
-                        .FirstOrDefaultAsync(l => l.RegionName == metro.Name && l.Specialization == sector);
+                        .FirstOrDefaultAsync(l => l.RegionName == metro.Name && l.SpecializationId == specId);
 
                     if (existing == null)
                     {
-                        existing = new LaborBenchmark { RegionName = metro.Name, Specialization = sector };
+                        existing = new LaborBenchmark { RegionName = metro.Name, SpecializationId = specId };
                         context.LaborBenchmarks.Add(existing);
                     }
 
@@ -147,6 +155,14 @@ public class LaborSyncService : ILaborSyncService
         await context.SaveChangesAsync();
     }
 
+    private int GetSpecId(List<Specialization> specs, string sector)
+    {
+        var norm = sector.ToLower().Replace(" eng", "").Replace(" science", "").Trim();
+        if (norm == "cs") norm = "computer";
+        
+        return specs.FirstOrDefault(s => s.NormalizedName.Contains(norm))?.Id ?? 0;
+    }
+
     public async Task SyncGlobalBenchmarksAsync()
     {
         _logger.LogInformation("Syncing Global Alternatives Data...");
@@ -154,6 +170,7 @@ public class LaborSyncService : ILaborSyncService
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<OrchestratorContext>();
 
+        var specs = await context.Specializations.ToListAsync();
         var sectors = new[] { "CS", "Cybersecurity", "Data Science", "Electrical Eng", "Biomedical", "Mechanical Eng" };
         var countries = new[] { 
             new { Name = "Germany", Flag = "🇩🇪", SalaryMod = 0.65m, Ease = "Smooth", PR = "Easy (21 mo)" },
@@ -166,12 +183,15 @@ public class LaborSyncService : ILaborSyncService
         {
             foreach (var country in countries)
             {
+                var specId = GetSpecId(specs, sector);
+                if (specId == 0) continue;
+
                 var existing = await context.GlobalSectorBenchmarks
-                    .FirstOrDefaultAsync(g => g.CountryName == country.Name && g.Specialization == sector);
+                    .FirstOrDefaultAsync(g => g.CountryName == country.Name && g.SpecializationId == specId);
 
                 if (existing == null)
                 {
-                    existing = new GlobalSectorBenchmark { CountryName = country.Name, Specialization = sector };
+                    existing = new GlobalSectorBenchmark { CountryName = country.Name, SpecializationId = specId };
                     context.GlobalSectorBenchmarks.Add(existing);
                 }
 

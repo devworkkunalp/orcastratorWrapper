@@ -38,39 +38,58 @@ public class GlobalBenchmarkSeeder
 
     public async Task SeedBenchmarksAsync()
     {
-        Console.WriteLine("[SEED] Starting Global Benchmark Seeding...");
+        Console.WriteLine("[SEED] Starting Relational Global Benchmark Seeding...");
+
+        // 1. Ensure Specializations are Seeded
+        var rawSpecs = new[] { "Computer Science / AI", "Data Science", "Cybersecurity", "Electrical Engineering", "Mechanical Engineering", "Biomedical" };
+        var specMap = new Dictionary<string, int>();
+
+        foreach (var name in rawSpecs)
+        {
+            var normalized = name.ToLower().Replace(" / ai", "").Replace(" science", "").Replace(" engineering", "").Trim();
+            var spec = await _context.Specializations.FirstOrDefaultAsync(s => s.NormalizedName == normalized);
+            if (spec == null)
+            {
+                spec = new Specialization { Name = name, NormalizedName = normalized, Category = "STEM" };
+                _context.Specializations.Add(spec);
+                await _context.SaveChangesAsync();
+            }
+            specMap[name] = spec.Id;
+        }
+
+        // 2. Clear stale string-based benchmarks if they exist (Manual migration step if DB is fresh)
+        // Note: In production, we'd use a Migration script, but for this dev-sync we ensure the new relational structure is filled.
 
         var countries = new[] { "CA", "DE", "GB", "AU" };
-        var specializations = new[] { "Computer Science / AI", "Data Science", "Cybersecurity", "Electrical Engineering", "Mechanical Engineering", "Biomedical" };
 
         foreach (var country in countries)
         {
-            foreach (var rawSpec in specializations)
+            foreach (var name in rawSpecs)
             {
-                var spec = NormalizeSpecialization(rawSpec);
+                var specId = specMap[name];
 
                 // 1. Seed Labor Benchmarks
                 var regionName = GetRepresentativeHub(country);
-                var laborExists = await _context.LaborBenchmarks.AnyAsync(l => l.RegionName == regionName && l.Specialization == spec);
+                var laborExists = await _context.LaborBenchmarks.AnyAsync(l => l.RegionName == regionName && l.SpecializationId == specId);
                 if (!laborExists)
                 {
                     _context.LaborBenchmarks.Add(new LaborBenchmark
                     {
                         CountryCode = country,
-                        Specialization = spec,
+                        SpecializationId = specId,
                         RegionName = regionName,
-                        MedianSalary = GetEstimatedSalary(country, rawSpec),
-                        Percentile10Salary = GetEstimatedSalary(country, rawSpec, 0.6),
-                        Percentile25Salary = GetEstimatedSalary(country, rawSpec, 0.8),
-                        Percentile75Salary = GetEstimatedSalary(country, rawSpec, 1.25),
-                        Percentile90Salary = GetEstimatedSalary(country, rawSpec, 1.5),
+                        MedianSalary = GetEstimatedSalary(country, name),
+                        Percentile10Salary = GetEstimatedSalary(country, name, 0.6),
+                        Percentile25Salary = GetEstimatedSalary(country, name, 0.8),
+                        Percentile75Salary = GetEstimatedSalary(country, name, 1.25),
+                        Percentile90Salary = GetEstimatedSalary(country, name, 1.5),
                         RentMedian = GetEstimatedRent(country),
                         LastSynced = DateTime.UtcNow
                     });
                 }
 
-                // 2. Seed Global Sector Benchmarks (For the comparison table)
-                var sectorExists = await _context.GlobalSectorBenchmarks.AnyAsync(s => s.CountryCode == country && s.Specialization == spec);
+                // 2. Seed Global Sector Benchmarks
+                var sectorExists = await _context.GlobalSectorBenchmarks.AnyAsync(s => s.CountryCode == country && s.SpecializationId == specId);
                 if (!sectorExists)
                 {
                     var countryName = GetCountryName(country);
@@ -79,11 +98,11 @@ public class GlobalBenchmarkSeeder
                         CountryCode = country,
                         CountryName = countryName,
                         Flag = GetFlag(country),
-                        Specialization = spec,
-                        MedianSalary = GetEstimatedSalary(country, rawSpec),
+                        SpecializationId = specId,
+                        MedianSalary = GetEstimatedSalary(country, name),
                         PrMetric = GetPrEaseMetric(country),
                         VisaEase = GetVisaEaseMetric(country),
-                        RoiScore = GetDefaultRoiScore(country, rawSpec),
+                        RoiScore = GetDefaultRoiScore(country, name),
                         LastSynced = DateTime.UtcNow
                     });
                 }
@@ -91,7 +110,7 @@ public class GlobalBenchmarkSeeder
         }
 
         await _context.SaveChangesAsync();
-        Console.WriteLine("[SEED] Global Benchmarks Seeded Successfully.");
+        Console.WriteLine("[SEED] Relational Global Benchmarks Seeded Successfully.");
     }
 
     private string GetRepresentativeHub(string code) => code switch
