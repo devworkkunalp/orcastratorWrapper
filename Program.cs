@@ -35,6 +35,7 @@ var host = new HostBuilder()
         services.AddScoped<ILaborSyncService, LaborSyncService>();
         services.AddScoped<IGlobalSyncService, GlobalSyncService>();
         services.AddScoped<GlobalUniversityHarvester>();
+        services.AddScoped<GlobalBenchmarkSeeder>();
     })
     .Build();
 

@@ -6,6 +6,7 @@ public class VisaBenchmark
 {
     public int Id { get; set; }
     public string RegionName { get; set; } = string.Empty; // e.g. Silicon Valley, Boston Metro
+    public string CountryCode { get; set; } = "US";
     public string Specialization { get; set; } = "General";
     
     public int TotalPetitions { get; set; }
@@ -26,6 +27,7 @@ public class LaborBenchmark
 {
     public int Id { get; set; }
     public string RegionName { get; set; } = string.Empty; // e.g. Silicon Valley, Boston Metro
+    public string CountryCode { get; set; } = "US";
     public string Specialization { get; set; } = "General";
     
     public int JobCount { get; set; }
@@ -47,6 +49,7 @@ public class GlobalSectorBenchmark
 {
     public int Id { get; set; }
     public string CountryName { get; set; } = string.Empty;
+    public string CountryCode { get; set; } = "US";
     public string Flag { get; set; } = string.Empty;
     public string Specialization { get; set; } = "General";
     

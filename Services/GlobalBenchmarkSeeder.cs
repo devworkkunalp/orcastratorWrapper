@@ -1,0 +1,147 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using STEMwise.Orchestrator.Data;
+using STEMwise.Orchestrator.Models;
+
+namespace STEMwise.Orchestrator.Services;
+
+public class GlobalBenchmarkSeeder
+{
+    private readonly OrchestratorContext _context;
+
+    public GlobalBenchmarkSeeder(OrchestratorContext context)
+    {
+        _context = context;
+    }
+
+    public async Task SeedBenchmarksAsync()
+    {
+        Console.WriteLine("[SEED] Starting Global Benchmark Seeding...");
+
+        var countries = new[] { "CA", "DE", "GB", "AU" };
+        var specializations = new[] { "Computer Science / AI", "Data Science", "Cybersecurity", "Electrical Engineering", "Mechanical Engineering", "Biomedical" };
+
+        foreach (var country in countries)
+        {
+            foreach (var spec in specializations)
+            {
+                // 1. Seed Labor Benchmarks
+                var laborExists = await _context.LaborBenchmarks.AnyAsync(l => l.CountryCode == country && l.Specialization == spec);
+                if (!laborExists)
+                {
+                    _context.LaborBenchmarks.Add(new LaborBenchmark
+                    {
+                        CountryCode = country,
+                        Specialization = spec,
+                        RegionName = GetRepresentativeHub(country),
+                        MedianSalary = GetEstimatedSalary(country, spec),
+                        Percentile10Salary = GetEstimatedSalary(country, spec, 0.6),
+                        Percentile25Salary = GetEstimatedSalary(country, spec, 0.8),
+                        Percentile75Salary = GetEstimatedSalary(country, spec, 1.3),
+                        Percentile90Salary = GetEstimatedSalary(country, spec, 1.6),
+                        JobCount = 5000,
+                        LastSynced = DateTime.UtcNow
+                    });
+                }
+
+                // 2. Seed Global Sector Benchmarks (For the comparison table)
+                var sectorExists = await _context.GlobalSectorBenchmarks.AnyAsync(s => s.CountryCode == country && s.Specialization == spec);
+                if (!sectorExists)
+                {
+                    _context.GlobalSectorBenchmarks.Add(new GlobalSectorBenchmark
+                    {
+                        CountryCode = country,
+                        CountryName = GetCountryName(country),
+                        Flag = GetFlag(country),
+                        Specialization = spec,
+                        MedianSalary = GetEstimatedSalary(country, spec),
+                        PrMetric = GetPrEaseMetric(country),
+                        VisaEase = GetVisaEaseMetric(country),
+                        RoiScore = GetDefaultRoiScore(country, spec),
+                        LastSynced = DateTime.UtcNow
+                    });
+                }
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        Console.WriteLine("[SEED] Global Benchmarks Seeded Successfully.");
+    }
+
+    private string GetRepresentativeHub(string code) => code switch
+    {
+        "CA" => "Toronto Metro",
+        "DE" => "Munich / Berlin",
+        "GB" => "London / Manchester",
+        "AU" => "Sydney Metro",
+        _ => "General"
+    };
+
+    private int GetEstimatedSalary(string country, string spec, double multiplier = 1.0)
+    {
+        int baseSalary = spec switch
+        {
+            "Computer Science / AI" => 110000,
+            "Data Science" => 105000,
+            "Cybersecurity" => 100000,
+            "Electrical Engineering" => 95000,
+            "Mechanical Engineering" => 85000,
+            "Biomedical" => 90000,
+            _ => 80000
+        };
+
+        double countryFactor = country switch
+        {
+            "US" => 1.0,
+            "CA" => 0.85,  // CAD roughly lower than USD base
+            "GB" => 0.65,  // GBP base
+            "DE" => 0.70,  // EUR base
+            "AU" => 0.90,  // AUD base
+            _ => 1.0
+        };
+
+        return (int)(baseSalary * countryFactor * multiplier);
+    }
+
+    private string GetPrEaseMetric(string country) => country switch
+    {
+        "CA" => "Guaranteed (Express Entry)",
+        "DE" => "Smooth (Blue Card)",
+        "AU" => "Points-Based",
+        "GB" => "Merit-Based",
+        "US" => "Lottery System",
+        _ => "Standard"
+    };
+
+    private string GetVisaEaseMetric(string country) => country switch
+    {
+        "CA" => "Very High (95%)",
+        "DE" => "High (85%)",
+        "AU" => "High (82%)",
+        "GB" => "Moderate (70%)",
+        "US" => "Low (45%)",
+        _ => "Moderate"
+    };
+
+    private int GetDefaultRoiScore(string country, string spec)
+    {
+        // Simple heuristic for ROI: lower tuition + high PR = higher ROI
+        int score = 70; 
+        if (country == "CA" || country == "DE") score += 15;
+        if (spec.Contains("AI") || spec.Contains("Data")) score += 10;
+        return Math.Min(score, 99);
+    }
+
+    private string GetCountryName(string code) => code switch
+    {
+        "CA" => "Canada", "DE" => "Germany", "GB" => "United Kingdom", "AU" => "Australia", "US" => "United States", _ => code
+    };
+
+    private string GetFlag(string code) => code switch
+    {
+        "CA" => "🇨🇦", "DE" => "🇩🇪", "GB" => "🇬🇧", "AU" => "🇦🇺", "US" => "🇺🇸", _ => "🌐"
+    };
+}

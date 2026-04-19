@@ -33,6 +33,8 @@ public class OrchestratorFunction
             var hudService = scope.ServiceProvider.GetRequiredService<IHudService>();
             var laborService = scope.ServiceProvider.GetRequiredService<ILaborSyncService>();
             var globalService = scope.ServiceProvider.GetRequiredService<IGlobalSyncService>();
+            var harvester = scope.ServiceProvider.GetRequiredService<GlobalUniversityHarvester>();
+            var seeder = scope.ServiceProvider.GetRequiredService<GlobalBenchmarkSeeder>();
 
             // Diagnostic Connection Check
             var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
@@ -66,7 +68,9 @@ public class OrchestratorFunction
                 hudService.SyncRegionalRentsAsync(),
                 laborService.SyncVisaBenchmarksAsync(),
                 laborService.SyncSalaryBenchmarksAsync(),
-                globalService.SyncGlobalBenchmarksAsync()
+                globalService.SyncGlobalBenchmarksAsync(),
+                harvester.HarvestFocusCountriesAsync(),
+                seeder.SeedBenchmarksAsync()
             );
 
             _logger.LogInformation("Sync Cycle Complete. Next occurrence: {next}", myTimer.ScheduleStatus?.Next);
