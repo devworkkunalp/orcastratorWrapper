@@ -48,13 +48,14 @@ public class GlobalBenchmarkSeeder
                 }
 
                 // 2. Seed Global Sector Benchmarks (For the comparison table)
-                var sectorExists = await _context.GlobalSectorBenchmarks.AnyAsync(s => s.CountryCode == country && s.Specialization == spec);
+                var countryName = GetCountryName(country);
+                var sectorExists = await _context.GlobalSectorBenchmarks.AnyAsync(s => s.CountryName == countryName && s.Specialization == spec);
                 if (!sectorExists)
                 {
                     _context.GlobalSectorBenchmarks.Add(new GlobalSectorBenchmark
                     {
                         CountryCode = country,
-                        CountryName = GetCountryName(country),
+                        CountryName = countryName,
                         Flag = GetFlag(country),
                         Specialization = spec,
                         MedianSalary = GetEstimatedSalary(country, spec),

@@ -29,6 +29,6 @@ public class OrchestratorContext : DbContext
         modelBuilder.Entity<VisaBenchmark>().HasIndex(v => new { v.RegionName, v.Specialization }).IsUnique();
         modelBuilder.Entity<LaborBenchmark>().HasIndex(l => new { l.RegionName, l.Specialization }).IsUnique();
         modelBuilder.Entity<GlobalUniversityMetric>().HasIndex(g => new { g.CountryCode, g.Name }).IsUnique();
-        modelBuilder.Entity<GlobalSectorBenchmark>().HasIndex(gs => new { gs.CountryName, gs.Specialization }).IsUnique();
+        modelBuilder.Entity<GlobalSectorBenchmark>().HasIndex(gs => new { gs.CountryCode, gs.Specialization }).IsUnique();
     }
 }
