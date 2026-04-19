@@ -11,12 +11,29 @@ namespace STEMwise.Orchestrator.Services;
 public class GlobalBenchmarkSeeder
 {
     private readonly OrchestratorContext _context;
-    private readonly ResearchMapper _mapper;
 
     public GlobalBenchmarkSeeder(OrchestratorContext context)
     {
         _context = context;
-        _mapper = new ResearchMapper();
+    }
+
+    private string NormalizeSpecialization(string? specialization)
+    {
+        if (string.IsNullOrEmpty(specialization)) return "General";
+        return specialization.ToLower() switch {
+            "cs" => "Computer Science / AI",
+            "computer science / ai" => "Computer Science / AI",
+            "cyber" => "Cybersecurity",
+            "cybersecurity" => "Cybersecurity",
+            "data" => "Data Science / Analytics",
+            "data science / analytics" => "Data Science / Analytics",
+            "electrical" => "Electrical Engineering",
+            "electrical engineering" => "Electrical Engineering",
+            "biomedical" => "Biomedical Sciences",
+            "mechanical" => "Mechanical Engineering",
+            "mechanical engineering" => "Mechanical Engineering",
+            _ => specialization
+        };
     }
 
     public async Task SeedBenchmarksAsync()
@@ -30,7 +47,7 @@ public class GlobalBenchmarkSeeder
         {
             foreach (var rawSpec in specializations)
             {
-                var spec = _mapper.NormalizeName(rawSpec) ?? rawSpec;
+                var spec = NormalizeSpecialization(rawSpec);
 
                 // 1. Seed Labor Benchmarks
                 var regionName = GetRepresentativeHub(country);
