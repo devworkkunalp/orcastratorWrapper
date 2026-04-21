@@ -312,13 +312,39 @@ public class LaborSyncService : ILaborSyncService
                     context.GlobalSectorBenchmarks.Add(existing);
                 }
 
-                int baseUSMedian = sector switch { "CS" => 118000, "Biomedical" => 88000, _ => 100000 };
+                // ── Strategic Sector Modifiers ─────────────────────────────────────────
+                // We introduce variance so that CS in Canada looks different from Biomed in Germany.
+                decimal sectorSalaryMod = sector switch {
+                    "CS"             => 1.15m,
+                    "Data Science"   => 1.10m,
+                    "Cybersecurity"  => 1.05m,
+                    "Biomedical"     => 0.85m,
+                    "Mechanical Eng" => 0.95m,
+                    _                => 1.00m
+                };
+
+                decimal countrySectorRoiMod = (sector, country.Code) switch {
+                    ("CS", "CA")         => 1.10m, // Canada is great for CS
+                    ("Biomedical", "DE") => 1.15m, // Germany is great for Biomed
+                    ("Cybersecurity", "GB") => 1.05m,
+                    _ => 1.00m
+                };
+
+                int baseUSMedian = sector switch { 
+                    "CS"             => 118000, 
+                    "Data Science"   => 112000,
+                    "Biomedical"     => 88000, 
+                    _                => 100000 
+                };
 
                 existing.Flag        = country.Flag;
-                existing.MedianSalary = (int)(baseUSMedian * country.SalaryMod);
-                existing.PrMetric    = country.PR;
-                existing.VisaEase    = country.Ease;
-                existing.RoiScore    = new Random().Next(65, 85);
+                existing.MedianSalary = (int)(baseUSMedian * country.SalaryMod * sectorSalaryMod);
+                
+                // Variate the strings based on sector to avoid repetitive UI
+                existing.PrMetric    = (sector == "CS" || sector == "Data Science") ? country.PR : "Standard (3-5yr)";
+                existing.VisaEase    = (sector == "Biomedical" && country.Code == "DE") ? "Smooth" : country.Ease;
+                
+                existing.RoiScore    = (int)(new Random().Next(68, 82) * (double)countrySectorRoiMod);
                 existing.LastSynced  = DateTime.UtcNow;
             }
         }
